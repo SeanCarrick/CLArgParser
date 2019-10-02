@@ -19,6 +19,7 @@ package com.is2300.clargparser;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -334,7 +335,9 @@ public class CLArguments {
             }
             
             return pojo;
-        } catch ( ClassNotFoundException | IllegalAccessException ex ) {
+        } catch ( ClassNotFoundException | IllegalAccessException
+                | NoSuchMethodException | InstantiationException 
+                | InvocationTargetException ex ) {
             throw new RuntimeException("Error creating switch POJO", ex);
         }
     }
