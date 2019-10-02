@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.is2300.clargparser;
+package com.is2300.cmdlineparser;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -26,13 +26,41 @@ import java.util.List;
 import java.util.TreeSet;
 
 /**
- *
+ * {@code CLArguments} is a library for parsing command line arguments in an 
+ * easy, intelligible and efficient manner. This parser breaks down the 
+ * difference between switches and targets. Switches are typically single letter
+ * options that are prefixed with a single dash (-) or, word or multi-word 
+ * options that are prefixed with a double dash (--). Targets are the parameters
+ * to the switches.
+ * <p> For example, if your program requires a flag for debugging, you would 
+ * provide a single {@code boolean} switch that takes no parameters, such as
+ * {@code -d} or {@code --debug}. Your program would then simply check if that
+ * switch was present, which would equate to {@code debugging = true}, or not,
+ * which would equate to {@code debugging = false}.</p>
+ * <p>Alternatively, if the 
+ * debugging flag is present, you may want to set a debugging level for verbosity
+ * of output. In that use case, your program could check for the existence of 
+ * the debugging flag (above) and, if it exists, check for the debugging level,
+ * which could be {@code --debugging-level 2} for a medium verbosity output. In
+ * this instance, the switch is {@code --debugging-level} and the target is 2.
+ * </p>
+ * <p>This works for any type of switch and target. You can even have targets
+ * with no switches or multiple targets for each switch. If you need targets 
+ * without a switch, those targets should be listed first on the command line,
+ * as this library interprets all targets following a switch as belonging to 
+ * that switch, up to the next switch on the command line.</p>
+ * <p>Also, you can use this library to populate fields in your custom classes,
+ * provided you name your fields the same as the command line switch that gathers
+ * the data for those fields.</p>
+ * <p>This project is located on GitHub at https://github.com/SeanCarrick/CLArgParser
+ * .</p>
+ * 
  * @author Sean Carrick &lt;sean at carricktrucking dot com&gt;
  * 
  * @version 0.1.0
  * @since 0.1.0
  */
-public class CLArguments {
+public class CmdLineParser {
     //<editor-fold defaultstate="collapsed" desc="Public Static Constants">
     
     //</editor-fold>
@@ -66,7 +94,7 @@ public class CLArguments {
      * 
      * @param args The command line argument passed into the implementing program.
      */
-    public CLArguments(String[] args) {
+    public CmdLineParser(String[] args) {
         parse(args);
     }
     //</editor-fold>
@@ -92,8 +120,9 @@ public class CLArguments {
         for ( String str : args ) {
             if ( str.startsWith("-") ) {
                 switchIndices.put(str, idx);
-                takenIndices.add(idx++);    // Use then increment idx.
+                takenIndices.add(idx);    // Use then increment idx.
             }
+            idx++;
         }
     }
     
@@ -148,10 +177,10 @@ public class CLArguments {
      *                      default value if the switch was not found.
      */
     public String getSwitchValue(String switchName, String defaultValue) {
-//        if ( !switchIndices.containsKey(switchName) ) {
-//            return defaultValue;
-//        }
-//        
+        if ( !switchIndices.containsKey(switchName) ) {
+            return defaultValue;
+        }
+        
         int idx = switchIndices.get(switchName);
         
         String val = null;
@@ -169,7 +198,7 @@ public class CLArguments {
      * 
      * @param switchName    The switch for which value is wanted.
      * @return              {@code java.lang.Long} value of the switch value.
-     * @throws              {@code NumberFormatException} if the string does not 
+     * @throws NumberFormatException if the string does not 
      *                      contain a parsable long.
      */
     public Long getSwitchLongValue(String switchName) {
@@ -186,7 +215,7 @@ public class CLArguments {
      * @return              {@code java.lang.Long} value, if the switch is 
      *                      present; the supplied default value if the switch is
      *                      not found.
-     * @throws              {@code NumberFormatException} if the string does not 
+     * @throws NumberFormatException if the string does not 
      *                      contain a parsable long.
      */
     public Long getSwitchLongValue(String switchName, Long defaultValue) {
@@ -204,7 +233,7 @@ public class CLArguments {
      * 
      * @param switchName    The switch for which value is wanted.
      * @return              {@code java.lang.Double} value of the switch value.
-     * @throws              {@code NumberFormatException} if the string does not 
+     * @throws NumberFormatException if the string does not 
      *                      contain a parsable double.
      */
     public Double getSwitchDoubleValue(String switchName) {
@@ -221,7 +250,7 @@ public class CLArguments {
      * @return              {@code java.lang.Double} value, if the switch is 
      *                      present; the supplied default value if the switch is
      *                      not found.
-     * @throws              {@code NumberFormatException} if the string does not 
+     * @throws NumberFormatException if the string does not 
      *                      contain a parsable double.
      */
     public Double getSwitchDoubleValue(String switchName, Double defaultValue) {
@@ -271,19 +300,25 @@ public class CLArguments {
      * @param clazz The class to which the switch and values should be placed
      *              into.
      * @return      {@code java.lang.Object} of the switch and its values.
-     * @throws      {@code RuntimeException} in the event the POJO cannot be
+     * @throws RuntimeException in the event the POJO cannot be
      *              created.
      */
-    public Object getSwitchPOJO(Class<Object> clazz) {
+    public <T> T getSwitchPOJO(Class<T> clazz) {
         try {
-            Class<?> newClass = Class.forName(clazz.getName());
-            Constructor<?> constructor = clazz.getConstructor();
-            Object pojo = constructor.newInstance();
-            Field[] fields = clazz.getFields();
+//            Class<?> newClass = Class.forName(clazz.getName());
+            Constructor<T> constructor = clazz.getConstructor();
+            T pojo = constructor.newInstance();
+            Field[] fields = clazz.getDeclaredFields();
             
             for ( Field field : fields ) {
                 Class fieldType = field.getType();
                 String fieldName = "-" + field.getName().replace("_", "-");
+                
+                // Check to see if the field name is valid.
+                String val = getSwitchValue(fieldName);
+                if ( val == null ) {
+                    fieldName = "-" + fieldName;
+                }
                 
                 if ( fieldType.equals(Boolean.class)
                         || fieldType.equals(boolean.class) ) {
@@ -335,9 +370,8 @@ public class CLArguments {
             }
             
             return pojo;
-        } catch ( ClassNotFoundException | IllegalAccessException
-                | NoSuchMethodException | InstantiationException 
-                | InvocationTargetException ex ) {
+        } catch ( IllegalAccessException | NoSuchMethodException 
+                | InstantiationException | InvocationTargetException ex ) {
             throw new RuntimeException("Error creating switch POJO", ex);
         }
     }
