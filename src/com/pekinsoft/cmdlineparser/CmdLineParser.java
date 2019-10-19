@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.is2300.cmdlineparser;
+package com.pekinsoft.cmdlineparser;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -55,7 +55,7 @@ import java.util.TreeSet;
  * <p>This project is located on GitHub at https://github.com/SeanCarrick/CLArgParser
  * .</p>
  * 
- * @author Sean Carrick &lt;sean at carricktrucking dot com&gt;
+ * @author Sean Carrick <sean at carricktrucking dot com>
  * 
  * @version 0.1.0
  * @since 0.1.0

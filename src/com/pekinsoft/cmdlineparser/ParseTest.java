@@ -14,11 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.is2300.cmdlineparser;
+package com.pekinsoft.cmdlineparser;
 
 /**
  *
- * @author Sean Carrick &lt;sean at carricktrucking dot com&gt;
+ * @author Sean Carrick <sean at carricktrucking dot com>
  */
 public class ParseTest {
 
